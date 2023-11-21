@@ -127,10 +127,12 @@ $(eval $(call build-ts-app,uefi-test))
 # purposes.
 
 CARVEOUT_ENTRY = $(ROOT)/build/qemu_v8/mm_communicate_carveout.dtsi
-$(QEMU_DTB_PATH): $(CARVEOUT_ENTRY) dumpdtb | linux
-	{ dtc -Idtb -Odts $(QEMU_DTB_PATH); cat $(CARVEOUT_ENTRY); } | dtc -Idts -Odtb -o $(QEMU_DTB_PATH)
+QEMU_CUSTOM_DTB = $(ROOT)/out/qemu_with_mm_carveout.dtb
 
-boot-img: $(QEMU_DTB_PATH)
+$(QEMU_CUSTOM_DTB): $(CARVEOUT_ENTRY) $(QEMU_DTB_PATH) | linux
+	{ dtc -Idtb -Odts $(QEMU_DTB_PATH); cat $(CARVEOUT_ENTRY); } | dtc -Idts -Odtb -o $(QEMU_CUSTOM_DTB)
+
+boot-img: $(QEMU_CUSTOM_DTB)
 
 .PHONY: qemu-dtb-clean
 qemu-dtb-clean:

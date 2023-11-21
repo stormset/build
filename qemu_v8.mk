@@ -66,6 +66,8 @@ MKIMAGE_PATH		?= $(UBOOT_PATH)/tools
 HAFNIUM_PATH		?= $(ROOT)/hafnium
 HAFNIUM_BIN		?= $(HAFNIUM_PATH)/out/reference/secure_qemu_aarch64_clang/hafnium.bin
 QEMU_DTB_PATH		?= $(ROOT)/out/qemu_v8.dtb
+CUSTOM_DTB			?= $(QEMU_DTB_PATH)
+QEMU_GENERATED_CONF	?= $(ROOT)/out/qemu_conf
 
 ROOTFS_GZ		?= $(BINARIES_PATH)/rootfs.cpio.gz
 ROOTFS_UGZ		?= $(BINARIES_PATH)/rootfs.cpio.uboot
@@ -486,7 +488,7 @@ QEMU_ARGS := \
 	$(QEMU_EXTRA_ARGS)
 	
 ifeq ($(QEMU_USE_CUSTOM_DTB),y)
-QEMU_DTB_ARG	?= -dtb $(QEMU_DTB_PATH)
+QEMU_DTB_ARG	?= -dtb $(CUSTOM_DTB)
 endif
 
 .PHONY: run-only
@@ -502,9 +504,11 @@ run-only:
 		$(QEMU_DTB_ARG) \
 		$(QEMU_ARGS)
 
+$(QEMU_GENERATED_CONF): FORCE
+	$(call check-conf-h,QEMU_ARGS)
+
 # Note: the generated DTB depends on $(QEMU_ARGS)
-.PHONY: dumpdtb
-dumpdtb:
+$(QEMU_DTB_PATH): $(QEMU_GENERATED_CONF)
 	cd $(BINARIES_PATH) && $(QEMU_BUILD)/aarch64-softmmu/qemu-system-aarch64 \
 		$(QEMU_ARGS) \
 		-machine dumpdtb=$(QEMU_DTB_PATH)

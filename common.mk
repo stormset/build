@@ -231,6 +231,34 @@ $($(_cached))
 endef
 cc-option = $(strip $(call _cc-option,$(1),$(2),$(3)))
 
+.PHONY: FORCE
+FORCE:
+
+# Generate/check/update a config file to store the values of Makefile
+# variables
+#
+# Example usage: includes variables with the given name into the file:
+#
+# path/to/config: FORCE
+#	$(call check-conf-h,CFG_VAR1 CFG_VAR2)
+define check-conf-h
+	cnf="$(foreach var,						\
+		$($1),								\
+		$(shell printf '%q\n' "$(var)"))";	\
+	mkdir -p $(dir $@);						\
+	echo -n "$${cnf}" >> $@.tmp;			\
+	$(call mv-if-changed,$@.tmp,$@)
+endef
+
+# Rename $1 to $2 only if file content differs. Otherwise just delete $1.
+define mv-if-changed
+	if cmp -s $2 $1; then					\
+		rm -f $1;					\
+	else							\
+		mv $1 $2;					\
+	fi
+endef
+
 ################################################################################
 # default target is all
 ################################################################################
